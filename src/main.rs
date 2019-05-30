@@ -1,5 +1,10 @@
 fn main() {
-    move_problem()
+    variable_scope();
+    string_type();
+    move_problem();
+    clone_wars();
+    fn_ownership();
+    return_values_ownership();
 }
 
 fn variable_scope() {
@@ -8,7 +13,9 @@ fn variable_scope() {
     // This is declaring a string literal type
     // They are pushed/popped from the stack
     // They are immutable, hardcoded values
+    println!("salutation not in scope");
     let salutation: &str = "Hello"; // salutation is declared : enters the scope
+    println!("salutation in scope: {}", salutation)
 
     // salutation is in scope, available for computation
 }
@@ -19,9 +26,12 @@ fn string_type() {
     // Allocated on the heap
     // Able to store amount of text unknown at runtime
     let stringy = String::from("Hello");
+    println!("stringy : {}", stringy);
     // It can be mutable
     let mut stringy_mut = String::from("Heya");
+    println!("mutable stringy: {}", stringy_mut);
     stringy_mut.push_str(", boy");
+    println!("mutated stringy: {}", stringy_mut);
 
     // String::from allocates the memory needed
     // When stringy or stringy_mut get out of scope, that memory is returned
@@ -33,7 +43,10 @@ fn move_problem() {
     // They have the Copy trait (special annotation)
     // Only possible if they don't implement the Drop trait
     let x = 5;
+    println!("x is put on the stack : {}", x);
     let y = x;
+    println!("x is still here: {}", x);
+    println!("x moved to y is: {}", y);
     // Types that are copy :
     // - integers (u32, u64, i32, etc)
     // - booleans
@@ -52,18 +65,21 @@ fn move_problem() {
 
     // How about that ?
     let s1 = String::from("hello");
+    println!("s1 is {}", s1);
+
+
     let s2 = s1;
+    // This doesn't compile at this point
+    // println!("s1 is {}", s1);
 
     // To protect against double free bug
     // (freeing the same memory when going out of scope)
     // (because s1 and s2's pointers both refer to the same contents on the heap)
     // Rust considers s1 invalid when you perform this kind of shallow copy
 
-    // This doesn't compile
-    // println!("{}", s1);
 
     // let s2 = s1; is called a move. s1 was moved into s2.
-    println!("{}", s2);
+    println!("s1 is moved into s2{}", s2);
 
     // Rust never creates "deep" copies of your data
     // "automatic" copies are always cheap in perf
@@ -74,12 +90,13 @@ fn clone_wars() {
     let s2 = s1.clone();
     // The heap data gets copied as well as length, capacity and pointer
     // It may be expensive, and signals unusual process
-    println!("s1 = {}, s2 = {}", s1, s2);
+    println!("s1 = {}, s2 cloned s1 = {}", s1, s2);
 }
 
 fn fn_ownership() {
     // s comes into scope
     let s = String::from("hello");
+    println!("s is here : {}", s);
 
     // s's value moves into the function...
     takes_ownership(s);
@@ -94,14 +111,14 @@ fn fn_ownership() {
     // use x afterward
     makes_copy(x);
     // x still in scope
-    println!("I am still here : {}", x)
+    println!("I am still here because I am Copy : {}", x)
 }
 // Here, x goes out of scope, then s.
 // But because s's value was moved, nothing special happens.
 
 fn takes_ownership(some_string: String) {
     // some_string comes into scope
-    println!("{}", some_string);
+    println!("takes_ownership got this arg : {}", some_string);
 }
 // Here, some_string goes out of scope
 // drop is called because it is not Copy.
@@ -109,7 +126,7 @@ fn takes_ownership(some_string: String) {
 
 fn makes_copy(some_integer: i32) {
     // some_integer comes into scope
-    println!("{}", some_integer);
+    println!("make_copy gets this arg : {}", some_integer);
 }
 // Here, some_integer goes out of scope.
 // Nothing special happens because it is Copy
@@ -118,6 +135,7 @@ fn return_values_ownership() {
     // gives_ownership_string moves its return
     // value into s1
     let s1 = gives_ownership_string();
+    println!("s1 owns returned value from gives_ownership : {}", s1);
 
     // s2 comes into scope
     let s2 = String::from("hello");
@@ -126,6 +144,8 @@ fn return_values_ownership() {
     // and it ALSO moves its return value into s3
 
     let s3 = takes_and_gives_back(s2);
+    // println!("s2 is invalid: {}", s2);
+    println!("s3 owns the returned value od takes_and_give_back {}", s3);
 }
 // Here, s3 goes out of scope and is dropped.
 // s2 goes out of scope but was moved, so nothing happens
